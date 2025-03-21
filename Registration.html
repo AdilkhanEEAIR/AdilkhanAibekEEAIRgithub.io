@@ -31,9 +31,9 @@
 
 
     <div class="form-container">
-        <div class="form-box">
+        <div class="form-box" id="register-form-action">
             <h2>Register</h2>
-            <form action="#" method="POST">
+            <form action="http://localhost:3000/register" method="POST">
                 <div class="input-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Enter your name" required>
@@ -47,14 +47,32 @@
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
                 <div class="input-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
                 </div>
                 <button type="submit" class="submit-btn">Register</button>
             </form>
-            <p class="login-link">Already have an account? <a href="#">Login</a></p>
+            <p class="login-link">Already have an account? <a href="#" id="show-login-form">Login</a></p>
         </div>
-    </div>
+
+        <!-- <div class="form-box" id="login-form-action">
+            <h2>Login</h2>
+            <form action="http://localhost:3000/login" method="POST">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+            <p class="login-link">Don't have an account? <a href="#" id="show-register-form">Register</a></p>
+        </div> -->
+
     
+    
+    <script src="reg.js"></script>
 </body>
 </html>
