@@ -25,3 +25,13 @@ router.get('/protected', checkAuthMiddleware, (req, res) => {
 // Маршрут для регистрации
 router.post('/register', userController.registerUser);
 module.exports = router;
+
+
+//Маршруты для туров
+// Создание тура
+router.post('/trips', checkAuthMiddleware, userController.createTrip);
+// Получение всех туров
+router.get('/trips', userController.getAllTrips);
+// Добавление поездки пользователя
+router.post('/user/trips', checkAuthMiddleware, userController.addUserTrip);
+module.exports = router;
