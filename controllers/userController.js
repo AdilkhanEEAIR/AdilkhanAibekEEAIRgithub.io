@@ -1,9 +1,8 @@
 const Joi = require('joi');
-const fs = require('fs');
-const jwt = require('jsonwebtoken'); // Для создания токенов
+const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
-// Ключ для создания токенов
-const JWT_SECRET = 'your_secret_key';  // Замените на более безопасный ключ
+const fs = require('fs').promises; 
+const JWT_SECRET = 'your_secret_key'; 
 // Схема для валидации данных
 const schema = Joi.object({
   username: Joi.string().required(),
@@ -11,7 +10,8 @@ const schema = Joi.object({
   password: Joi.string().min(6).required(),
   confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
 });
-exports.registerUser = (req, res) => {
+// Регистрация пользователя
+exports.registerUser = async (req, res, next) => {
   const { username, email, password, confirmPassword } = req.body;
   // Валидация данных
   const { error } = schema.validate({ username, email, password, confirmPassword });
@@ -19,43 +19,30 @@ exports.registerUser = (req, res) => {
     console.log('Ошибка валидации:', error.details[0].message);
     return res.status(400).send('Ошибка валидации: ' + error.details[0].message);
   }
-  console.log('Полученные данные для регистрации:');
-  console.log('Имя пользователя:', username);
-  console.log('Email:', email);
-  console.log('Пароль:', password);
-  console.log('Подтверждение пароля:', confirmPassword);
-  // Проверка, существует ли пользователь с таким email
-  userModel.findUserByEmail(email, (err, user) => {
-    if (err) {
-      console.log('Ошибка при поиске пользователя:', err);
-      return res.status(500).send('Ошибка при поиске пользователя');
-    }
+  console.log(`Пользователь ${username}`);
+  try {
+    // Проверка на существование пользователя
+    const user = await userModel.findUserByEmail(email);
     if (user) {
-      console.log('Пользователь с таким email уже существует');
+      console.log('Пользователь с таким email уже существует:', email);
       return res.status(400).send('Пользователь с таким email уже существует');
     }
+    console.log(`email ${email}`);
     // Сохранение нового пользователя
-    userModel.registerUser(username, email, password, (err, userId) => {
-      if (err) {
-        console.log('Ошибка при сохранении пользователя:', err);
-        return res.status(500).send('Ошибка при сохранении пользователя');
-      }
-      console.log('Пользователь успешно зарегистрирован. ID:', userId);
-      // Генерация токена сессии
-      const sessionToken = jwt.sign({ userId: userId }, JWT_SECRET, { expiresIn: '1h' });
-      console.log('Сгенерирован токен сессии:', sessionToken);
-      // Формируем данные для записи в файл
-      const data = `Username: ${username}, Email: ${email}, Password: ${password}, Confirm Password: ${confirmPassword}, Session Token: ${sessionToken}\n`;
-
-      // registrations.txt
-      fs.appendFile('registrations.txt', data, (err) => {
-        if (err) {
-          console.log('Ошибка при записи в файл:', err);
-          return res.status(500).send('Ошибка при сохранении данных в файл');
-        }
-        console.log('Данные успешно сохранены в файл!');
-        res.status(200).send('Данные успешно сохранены в файл и регистрация успешна!');
-      });
-    });
-  });
+    const userId = await userModel.registerUser(username, email, password);
+    console.log(`Пользователь успешно зарегистрирован, ID: ${userId}`);
+    // Генерация токена сессии
+    const sessionToken = jwt.sign({ userId: userId }, JWT_SECRET, { expiresIn: '1h' });
+    console.log('Сгенерирован токен сессии:', sessionToken);
+    // Запись данных в файл
+    const data = `Username: ${username}, Email: ${email}, Password: ${password}, Confirm Password: ${confirmPassword}, Session Token: ${sessionToken}\n`;
+    await fs.appendFile('registrations.txt', data);
+    console.log('Данные успешно сохранены в файл!');
+    // Отправка успешного ответа
+    res.status(200).send('Данные успешно сохранены в файл и регистрация успешна!');
+  } catch (err) {
+    console.log('Ошибка при выполнении операции:', err);
+    // Передаем ошибку в глобальный обработчик ошибок
+    next(err);
+  }
 };
